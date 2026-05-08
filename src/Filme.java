@@ -25,12 +25,25 @@ public class Filme {
         return nome;
     }
 
-
     public int getId() {
         return id;
     }
     public void setId(int id) {
         this.id = id;
+    }
+
+    public Estado getEstado() {
+        return estado;
+    }
+    public void setEstado(Estado estado) {
+        this.estado = estado;
+    }
+
+    public double getPrecoLocacao() {
+        return precoLocacao;
+    }
+    public void setPrecoLocacao(double precoLocacao) {
+        this.precoLocacao = precoLocacao;
     }
 
     public void setCopias(int copias) {
@@ -40,12 +53,6 @@ public class Filme {
         return copias;
     }
 
-    public Estado getEstado() {
-        return estado;
-    }
-    public void setEstado(Estado estado) {
-        this.estado = estado;
-    }
 
     @Override
     public String toString() {

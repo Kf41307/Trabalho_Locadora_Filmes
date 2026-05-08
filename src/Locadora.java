@@ -1,3 +1,6 @@
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Locadora {
@@ -91,10 +94,74 @@ public class Locadora {
 
     }
 
+    public void adicionarLocacao(Cliente cliente, String nomeFilme) {
+        Scanner scanner = new Scanner(System.in);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        if (cliente.isBloqueado()) {
+            System.out.println("Cliente \"" + cliente.getNome() + " \" não pode fazer locação porque está bloqueado.");
+            return;
+        }else if (!filmes.containsKey(nomeFilme)) {
+            System.out.println("Não existe um filme com o nome \"" + nomeFilme + "\".");
+            return;
+        }
+
+
+        for (Filme f : filmes.get(nomeFilme)) {
+            if (f.getEstado() == Estado.DISPONIVEL) {
+
+                LocalDate hoje = LocalDate.now();
+
+                System.out.println("Valor da locação filme \"" + f.getNome() + "\" por dia: R$ " + f.getPrecoLocacao());
+
+                boolean input = true;
+
+                do {
+                    System.out.print("Locação por quantos dias?: ");
+                    int diasLocacao = scanner.nextInt();
+
+                    if (diasLocacao < 1) {
+                        System.out.println("Digite uma quantidade de dias maior do que 0.");
+                        continue;
+                    }
+
+                    LocalDate dataDevolucao = hoje.plusDays(diasLocacao);
+
+                    if (dataDevolucao.getDayOfWeek() == DayOfWeek.SATURDAY || dataDevolucao.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                        System.out.println("A devolução ficará para um dia não útil, a data para devolução deve ser um dia útil.");
+                    } else {
+
+                        Locacao locacao = new Locacao(f, dataDevolucao, cliente);
+
+                        f.setEstado(Estado.ALUGADO);
+
+                        locacoes.add(locacao);
+                        System.out.println("Locação do filme \"" + f.getNome() + "\" para o cliente \"" + cliente.getNome() + "\" adicionada.");
+                        System.out.println("Data da devolução: " + dataDevolucao.format(formatter));
+                        System.out.println("Valor da locação: " + f.getPrecoLocacao()*diasLocacao);
+
+                        cliente.setValorPendente(f.getPrecoLocacao()*diasLocacao);
+                        cliente.addLocacao(locacao);
+                        input = false;
+                        return;
+                    }
+                } while (input);
+            }
+        }
+
+        System.out.println("Nenhum filme com o nome \"" + nomeFilme + "\" está disponível para locação");
+    }
+
+    public void mostrarLocacoesAtivas(){
+        for(Locacao l : locacoes){
+            System.out.println(l);
+        }
+    }
+
     //public void buscarPorTitulo(String nome) {} Já faz atualmente na mostrarFilme
 
     public void listarFilmesDisponiveis() {
-        for (String k : this.filmes.keySet()) {
+        for (String k : filmes.keySet()) {
             for (Filme f : filmes.get(k)) {
                 if (f.getEstado() == Estado.DISPONIVEL) {
                     System.out.println(f);
