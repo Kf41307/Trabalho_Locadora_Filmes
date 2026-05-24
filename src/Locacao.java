@@ -1,8 +1,9 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 public class Locacao {
-    private Filme filme; //Uma locação por vez
+    private Filme filme;
     private LocalDate dataDevolucao; //Duração fixa ? Se escolher setar preco por dia
     private Cliente cliente;
 
@@ -10,6 +11,22 @@ public class Locacao {
         this.filme = filme;
         this.dataDevolucao = dataDevolucao;
         this.cliente = cliente;
+    }
+
+    public boolean isAtrasada(){
+        return LocalDate.now().isAfter(dataDevolucao);
+    }
+
+    public void aplicarMulta(){
+        if(this.isAtrasada()){
+                LocalDate agora = LocalDate.now();
+            long diasAtrasados = ChronoUnit.DAYS.between(dataDevolucao , agora);
+
+            double valorMulta = diasAtrasados * (filme.getPrecoLocacao() * 1.3);
+
+            cliente.setValorPendente(cliente.getValorPendente() + valorMulta);
+            cliente.setTotalMultas(cliente.getTotalMultas() + valorMulta);
+        }
     }
 
     @Override

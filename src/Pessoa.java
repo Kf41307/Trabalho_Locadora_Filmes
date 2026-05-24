@@ -10,6 +10,10 @@ public abstract class Pessoa {
         this.telefone = telefone;
     }
 
+    @Override
+    public String toString() {
+        return "Nome: " + nome + " , CPF: " + cpf + " , Telefone: " + telefone;
+    }
 
     public String getNome() {
         return nome;

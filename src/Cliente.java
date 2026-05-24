@@ -18,12 +18,41 @@ public class Cliente extends Pessoa {
         this.bloqueado = false;
     }
 
+    @Override
+    public String toString() {
+        String parte1 = "\nLocações: ";
+        if(locacoes.isEmpty()){
+            parte1 += "Nenhuma";
+        }else{
+            for(Locacao l : locacoes){
+                parte1 += "\n" + l;
+            }
+        }
+
+        String parte2 = "\nReservas: ";
+        if(reservas.isEmpty()){
+            parte2 += "Nenhuma";
+        }else{
+            for(Reserva r : reservas){
+                parte2 += "\n" + r;
+            }
+        }
+
+        String parte3 = "\nBloqueado: " + (bloqueado ? "Sim" : "Não");
+
+        String parte4 = "\nTotal de multas : " + totalMultas;
+
+        String parte5 = "\nValor pendente: " + valorPendente;
+
+        return super.toString() + parte1 + parte2 + parte3 + parte4 + parte5;
+    }
+
     public double getTotalMultas() {
         return totalMultas;
     }
 
     public void setTotalMultas(double totalMultas) {
-        this.totalMultas += totalMultas;
+        this.totalMultas = totalMultas;
     }
 
     public double getValorPendente() {
@@ -31,7 +60,7 @@ public class Cliente extends Pessoa {
     }
 
     public void setValorPendente(double valorPendente) {
-        this.valorPendente += valorPendente;
+        this.valorPendente = valorPendente;
     }
 
     public List<Locacao> getLocacoes() {
@@ -44,7 +73,7 @@ public class Cliente extends Pessoa {
         }
     }
 
-    public void removeLocacao(Locacao locacao) {
+    public void removerLocacao(Locacao locacao) {
         for (Locacao l : locacoes) {
             if (l.equals(locacao)) {
                 locacoes.remove(l);
@@ -63,7 +92,7 @@ public class Cliente extends Pessoa {
         }
     }
 
-    public void removeReserva(Reserva reserva){
+    public void removerReserva(Reserva reserva) {
         for (Reserva r : reservas) {
             if (r.equals(reserva)) {
                 reservas.remove(r);

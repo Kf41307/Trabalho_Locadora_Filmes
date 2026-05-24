@@ -2,182 +2,190 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Locadora {
 
-    private Map<String, List<Filme>> filmes; // private Map<String , Filme> filmes;
-    private List<Cliente> clientes;
-    private List<Reserva> reservas;
-    private List<Funcionario> funcionarios;
-    private List<Locacao> locacoes;
+    private FilmeRepositorio filmes;
+    private ClienteRepositorio clientes;
+    private ReservaRepositorio reservas;
+    private FuncionarioRepositorio funcionarios;
+    private LocacaoRepositorio locacoes;
 
 
     public Locadora() {
-        this.filmes = new HashMap<>();
-        this.clientes = new ArrayList<>();
-        this.reservas = new ArrayList<>();
-        this.funcionarios = new ArrayList<>();
-        this.locacoes = new ArrayList<>();
+        this.filmes = new FilmeRepositorio();
+        this.clientes = new ClienteRepositorio();
+        this.reservas = new ReservaRepositorio();
+        this.funcionarios = new FuncionarioRepositorio();
+        this.locacoes = new LocacaoRepositorio();
     }
 
-    public void adicionarFilmes(Filme filme) {
-        String key = filme.getNome();
-
-        if (filmes.containsKey(key)) {  // adicionar copia caso já exista um filme com exatamente o mesmo nome
-
-            int idAnterior = filmes.get(key).getLast().getId();
-            filme.setId(idAnterior + 1);
-
-            for (Filme f : filmes.get(key)) {
-                f.setCopias(filmes.get(key).size() + 1);
-            }
-            filme.setCopias(filmes.get(key).getFirst().getCopias());
-
-            filmes.get(key).add(filme);
-
-        } else {
-            filme.setId(1);
-            filme.setCopias(1);
-
-            List<Filme> listaFilme = new ArrayList<>();
-            listaFilme.add(filme);
-            filmes.put(key, listaFilme);
-        }
+    public void adicionarFilme(Filme f) {
+        filmes.adicionar(f);
     }
 
     public void mostrarFilmes() {
-        for (String k : filmes.keySet()) {
-            for (Filme f : filmes.get(k)) {
-                System.out.println(f);
-            }
+        List<Filme> filmes = this.filmes.listarTodos();
+        for (Filme f : filmes) {
+            System.out.println(f);
         }
     }
 
     public void mostrarFilme(String nomeFilme) {
-        if (!filmes.containsKey(nomeFilme)) {
-            System.out.println("Nenhum filme com o nome \"" + nomeFilme + "\" foi encontrado");
-        } else {
-            for (Filme f : filmes.get(nomeFilme)) {
+        if (filmes.existe(nomeFilme)) {
+            List<Filme> filme = filmes.buscarPorNome(nomeFilme);
+
+            for (Filme f : filme) {
                 System.out.println(f);
             }
-        }
-    }
-
-    public void removerFilme(String nomeFilme) {
-        Scanner scanner = new Scanner(System.in);
-
-        if (!filmes.containsKey(nomeFilme)) {
-            System.out.println("Nenhum filme com o nome \"" + nomeFilme + "\" foi encontrado");
-        } else if (filmes.get(nomeFilme).size() == 1) {
-            filmes.remove(nomeFilme);
-            System.out.println("Filme \"" + nomeFilme + "\" removido");
         } else {
-            System.out.println("Filmes com o nome \"" + nomeFilme + "\" :");
-            mostrarFilme(nomeFilme);
+            System.out.println("Nenhum filme com o nome \"" + nomeFilme + "\" foi encontrado");
+        }
+    }
 
-            System.out.print("Informe o id para remover: "); //Validar id sendo o menor o primeiro e maior o ultimo da lista
-            int idRemove = scanner.nextInt();
-            List<Filme> lista = filmes.get(nomeFilme);
+    public void removerFilme(String nomeFilme, int id) { // O id tem que ser perguntado pelo menu caso haja mais de uma copia
+        if (!filmes.existe(nomeFilme)) {
+            System.out.println("Nenhum filme com o nome \"" + nomeFilme + "\" foi encontrado");
+            return;
+        }
+        filmes.remover(nomeFilme, id);
+        System.out.println("Filme \"" + nomeFilme + "\" id: " + id + " , foi removido");
+    }
 
-            for (Filme f : lista) {
-                if (f.getId() == idRemove) {
-                    lista.remove(f);
-                    break;
-                }
-            }
-            // Atualizando o numero de copias e o numero dos ids dos filmes que restaram
-            for (Filme f : lista) {
-                f.setCopias(lista.size()); //O numero de copias
-                f.setId(lista.indexOf(f) + 1);
-            }
+    public void mostrarFilmesDisponiveis() {
+        List<Filme> disponiveis = filmes.listarDisponiveis();
+        if (disponiveis == null) {
+            System.out.println("Nenhum filme disponível");
+            return;
+        }
+
+        for (Filme f : disponiveis) {
+            System.out.println(f);
         }
 
     }
 
-    public void adicionarLocacao(Cliente cliente, String nomeFilme) {
-        Scanner scanner = new Scanner(System.in);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public void mostrarFilmesAlugados() {
+        List<Filme> alugados = filmes.listarAlugados();
+        if (alugados == null) {
+            System.out.println("Nenhum filme alugado");
+            return;
+        }
+        for (Filme f : alugados) {
+            System.out.println(f);
+        }
+    }
 
+    // Parte funcionarios
+
+    public void adicionarFuncionario(Funcionario f){
+        funcionarios.adicionar(f);
+    }
+
+    public void demitirFuncionario(Funcionario f){
+        funcionarios.remover(f);
+    }
+
+    public void atualizarDados(Funcionario f, String novoTelefone){
+        funcionarios.alterarTelefone(f, novoTelefone);
+    }
+
+    public void alterarSalario(Funcionario f, double novoSalario){
+        funcionarios.alterarSalario(f, novoSalario);
+    }
+
+    public void mostrarFuncionarios(){
+        List<Funcionario> funcionarios = this.funcionarios.listarFuncionarios();
+        for(Funcionario f : funcionarios){
+            System.out.println(f);
+        }
+    }
+
+
+    // Parte locações:
+
+    public void adicionarLocacao(Cliente cliente, String nomeFilme, int diasLocacao) {
         if (cliente.isBloqueado()) {
-            System.out.println("Cliente \"" + cliente.getNome() + " \" não pode fazer locação porque está bloqueado.");
-            return;
-        }else if (!filmes.containsKey(nomeFilme)) {
-            System.out.println("Não existe um filme com o nome \"" + nomeFilme + "\".");
+            System.out.println("Cliente \"" + cliente.getNome() + "\" está bloqueado e não pode fazer locações.");
             return;
         }
 
-
-        for (Filme f : filmes.get(nomeFilme)) {
-            if (f.getEstado() == Estado.DISPONIVEL) {
-
-                LocalDate hoje = LocalDate.now();
-
-                System.out.println("Valor da locação filme \"" + f.getNome() + "\" por dia: R$ " + f.getPrecoLocacao());
-
-                boolean input = true;
-
-                do {
-                    System.out.print("Locação por quantos dias?: ");
-                    int diasLocacao = scanner.nextInt();
-
-                    if (diasLocacao < 1) {
-                        System.out.println("Digite uma quantidade de dias maior do que 0.");
-                        continue;
-                    }
-
-                    LocalDate dataDevolucao = hoje.plusDays(diasLocacao);
-
-                    if (dataDevolucao.getDayOfWeek() == DayOfWeek.SATURDAY || dataDevolucao.getDayOfWeek() == DayOfWeek.SUNDAY) {
-                        System.out.println("A devolução ficará para um dia não útil, a data para devolução deve ser um dia útil.");
-                    } else {
-
-                        Locacao locacao = new Locacao(f, dataDevolucao, cliente);
-
-                        f.setEstado(Estado.ALUGADO);
-
-                        locacoes.add(locacao);
-                        System.out.println("Locação do filme \"" + f.getNome() + "\" para o cliente \"" + cliente.getNome() + "\" adicionada.");
-                        System.out.println("Data da devolução: " + dataDevolucao.format(formatter));
-                        System.out.println("Valor da locação: " + f.getPrecoLocacao()*diasLocacao);
-
-                        cliente.setValorPendente(f.getPrecoLocacao()*diasLocacao);
-                        cliente.addLocacao(locacao);
-                        input = false;
-                        return;
-                    }
-                } while (input);
-            }
+        Filme filme = filmes.buscarDisponivel(nomeFilme);
+        if (filme == null) {
+            System.out.println("Nenhum filme com o nome \"" + nomeFilme + "\" disponível para locação");
+            return;
         }
 
-        System.out.println("Nenhum filme com o nome \"" + nomeFilme + "\" está disponível para locação");
+        LocalDate dataDevolucao = LocalDate.now().plusDays(diasLocacao);
+        if (dataDevolucao.getDayOfWeek() == DayOfWeek.SATURDAY
+                || dataDevolucao.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            System.out.println("A data de devolução cai em um fim de semana. Escolha outro número de dias.");
+            return;
+        }
+
+        Locacao locacao = new Locacao(filme, dataDevolucao, cliente);
+        filme.setEstado(Estado.ALUGADO);
+        locacoes.adicionar(locacao);
+        cliente.addLocacao(locacao);
+        cliente.setValorPendente(cliente.getValorPendente() + filme.getPrecoLocacao() * diasLocacao);
+
+        DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        System.out.println("Locação registrada: \"" + filme.getNome() + "\" para \"" + cliente.getNome() + "\".");
+        System.out.println("Devolução em: " + dataDevolucao.format(formatador));
+        System.out.println("Valor total: R$ " + filme.getPrecoLocacao() * diasLocacao);
+        //Adicionar uma funcção de pagamento aqui ?
     }
 
-    public void mostrarLocacoesAtivas(){
-        for(Locacao l : locacoes){
+    public void mostrarLocacoesAtivas() {
+        List<Locacao> locacoes = this.locacoes.listarTodas();
+        for (Locacao l : locacoes) {
             System.out.println(l);
         }
     }
 
-    //public void buscarPorTitulo(String nome) {} Já faz atualmente na mostrarFilme
+    // Parte clientes:
 
-    public void listarFilmesDisponiveis() {
-        for (String k : filmes.keySet()) {
-            for (Filme f : filmes.get(k)) {
-                if (f.getEstado() == Estado.DISPONIVEL) {
-                    System.out.println(f);
-                }
-            }
+    public void adicionarCliente(Cliente cliente) {
+        clientes.adicionar(cliente);
+        System.out.println("Cliente \"" + cliente.getNome() + "\" cadastrado");
+    }
+
+    public void removerCliente(String cpf) {
+        clientes.remover(cpf);
+    }
+
+    public void atualizarTelefoneCliente(Cliente cliente, String novoTelefone) { //Mostrar telefone antigo na tela antes de trocar
+        clientes.atualizarTelefone(cliente, novoTelefone);
+    }
+
+    public void listarClientes() {
+        List<Cliente> clientes = this.clientes.listarTodos();
+        for(Cliente c : clientes){
+            System.out.println(c);
         }
     }
 
-    public void listarFilmesAlugados() {
-        for (String k : this.filmes.keySet()) {
-            for (Filme f : filmes.get(k)) {
-                if (f.getEstado() == Estado.ALUGADO) {
-                    System.out.println(f);
-                }
-            }
+    public void listarClientesComDivida() {
+        List<Cliente> clientes = this.clientes.listarEndividados();
+
+        for(Cliente c : clientes){
+            System.out.println(c);
         }
     }
+
+    public void imprimirCliente(String cpf) { // Poderia ser sobrecarregado com parametros telefone e cpf tambem
+        Cliente c = clientes.buscarPorCpf(cpf);
+        if (c == null) {
+            System.out.println("Nenhum cliente com o CPF \"" + cpf + "\" foi encontrado.");
+        } else {
+            System.out.println(c);
+        }
+
+    }
+
+    // Parte reservas:
+
 
 }
